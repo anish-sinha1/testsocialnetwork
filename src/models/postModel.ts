@@ -4,7 +4,12 @@ export interface IComment extends Document {
   user: mongoose.Schema.Types.ObjectId;
   text: string;
   avatar: string;
-  date: Date;
+  date?: Date;
+  name?: string;
+}
+
+export interface ILike extends Document {
+  user: mongoose.Schema.Types.ObjectId;
 }
 
 export interface IPost extends Document {
@@ -12,7 +17,7 @@ export interface IPost extends Document {
   text: string;
   author: string;
   avatar: string;
-  likes?: mongoose.Schema.Types.ObjectId[];
+  likes?: ILike[];
   comments?: IComment[];
   date: Date;
 }
