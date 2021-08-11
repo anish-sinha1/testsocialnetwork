@@ -119,3 +119,55 @@ export const createUserProfile: RequestHandler = async (req, res, next) => {
     });
   }
 };
+
+export const getAllProfiles: RequestHandler = async (req, res, next) => {
+  try {
+    const profiles = await Profile.find().populate("User", ["name", "avatar"]);
+    res.status(200).json({
+      profiles,
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+};
+
+export const getProfileById: RequestHandler = async (req, res, next) => {
+  try {
+    const profile = await Profile.findOne({ user: req.params.userId }).populate(
+      "user",
+      ["name", "avatar"]
+    );
+    if (!profile)
+      return res
+        .status(400)
+        .json({ message: "No profile found for that user" });
+    res.status(200).json({
+      profile,
+    });
+  } catch (err) {
+    if (err.kind === "ObjectId") {
+      return res
+        .status(400)
+        .json({ message: "No profile found for that user" });
+    }
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+};
+
+export const deleteProfile: RequestHandler = async (req, res, next) => {
+  try {
+    await Profile.findOneAndRemove({ user: req.user.id });
+    await User.findOneAndRemove({ _id: req.user.id });
+    res.status(204).json({
+      status: "deleted",
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+};

@@ -3,9 +3,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createUserProfile = exports.getUserProfile = void 0;
+exports.deleteProfile = exports.getProfileById = exports.getAllProfiles = exports.createUserProfile = exports.getUserProfile = void 0;
 const express_validator_1 = require("express-validator");
 const profileModel_1 = __importDefault(require("../models/profileModel"));
+const userModel_1 = __importDefault(require("../models/userModel"));
 const getUserProfile = async (req, res, next) => {
     try {
         const profile = await profileModel_1.default.findOne({ user: req.user.id }).populate("user", ["name", "avatar"]);
@@ -100,3 +101,55 @@ const createUserProfile = async (req, res, next) => {
     }
 };
 exports.createUserProfile = createUserProfile;
+const getAllProfiles = async (req, res, next) => {
+    try {
+        const profiles = await profileModel_1.default.find().populate("User", ["name", "avatar"]);
+        res.status(200).json({
+            profiles,
+        });
+    }
+    catch (err) {
+        res.status(500).json({
+            error: err.message,
+        });
+    }
+};
+exports.getAllProfiles = getAllProfiles;
+const getProfileById = async (req, res, next) => {
+    try {
+        const profile = await profileModel_1.default.findOne({ user: req.params.userId }).populate("user", ["name", "avatar"]);
+        if (!profile)
+            return res
+                .status(400)
+                .json({ message: "No profile found for that user" });
+        res.status(200).json({
+            profile,
+        });
+    }
+    catch (err) {
+        if (err.kind === "ObjectId") {
+            return res
+                .status(400)
+                .json({ message: "No profile found for that user" });
+        }
+        res.status(500).json({
+            error: err.message,
+        });
+    }
+};
+exports.getProfileById = getProfileById;
+const deleteProfile = async (req, res, next) => {
+    try {
+        await profileModel_1.default.findOneAndRemove({ user: req.user.id });
+        await userModel_1.default.findOneAndRemove({ _id: req.user.id });
+        res.status(204).json({
+            status: "deleted",
+        });
+    }
+    catch (err) {
+        res.status(500).json({
+            error: err.message,
+        });
+    }
+};
+exports.deleteProfile = deleteProfile;
