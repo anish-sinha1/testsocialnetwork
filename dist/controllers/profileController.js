@@ -3,8 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteProfile = exports.getProfileById = exports.getAllProfiles = exports.createUserProfile = exports.getUserProfile = void 0;
+exports.getGithubProfile = exports.deleteEducation = exports.profileEducation = exports.deleteExperience = exports.profileExperience = exports.deleteProfile = exports.getProfileById = exports.getAllProfiles = exports.createUserProfile = exports.getUserProfile = void 0;
 const express_validator_1 = require("express-validator");
+const request_1 = __importDefault(require("request"));
 const profileModel_1 = __importDefault(require("../models/profileModel"));
 const userModel_1 = __importDefault(require("../models/userModel"));
 const getUserProfile = async (req, res, next) => {
@@ -37,8 +38,6 @@ const createUserProfile = async (req, res, next) => {
     const { company, website, location, bio, status, githubUsername, skills, youtube, facebook, twitter, instagram, linkedin, tiktok, } = req.body;
     let profileFields = {};
     profileFields.social = {};
-    profileFields.experience = {};
-    profileFields.education = {};
     console.log(profileFields);
     profileFields.user = req.user.id;
     if (company)
@@ -153,3 +152,116 @@ const deleteProfile = async (req, res, next) => {
     }
 };
 exports.deleteProfile = deleteProfile;
+const profileExperience = async (req, res, next) => {
+    console.log("->");
+    console.log(req.user);
+    const errors = express_validator_1.validationResult(req);
+    if (!errors.isEmpty())
+        return res.status(400).json({ errors: errors.array() });
+    const { title, company, location, from, to, current, description } = req.body;
+    const newExp = {
+        title,
+        company,
+        location,
+        from,
+        to,
+        current,
+        description,
+    };
+    console.log(newExp);
+    try {
+        const profile = await profileModel_1.default.findOne({ user: req.user.id });
+        console.log(profile);
+        profile.experience.unshift(newExp);
+        await profile.save();
+        res.status(200).json({
+            profile,
+        });
+    }
+    catch (err) {
+        res.status(500).json({ message: "server error" });
+    }
+};
+exports.profileExperience = profileExperience;
+const deleteExperience = async (req, res, next) => {
+    try {
+        const profile = await profileModel_1.default.findOne({ user: req.user.id });
+        const removeIndex = profile.experience
+            .map((item) => item.id)
+            .indexOf(req.params.experienceId);
+        profile.experience.splice(removeIndex, 1);
+        await profile.save();
+        res.status(204).json({
+            profile,
+        });
+    }
+    catch (err) {
+        res.status(500).json({ message: "server error" });
+    }
+};
+exports.deleteExperience = deleteExperience;
+const profileEducation = async (req, res, next) => {
+    const errors = express_validator_1.validationResult(req);
+    if (!errors.isEmpty())
+        return res.status(400).json({ errors: errors.array() });
+    const { school, degree, fieldOfStudy, from, to, current, description } = req.body;
+    const newEdu = {
+        school,
+        degree,
+        fieldOfStudy,
+        from,
+        to,
+        current,
+        description,
+    };
+    try {
+        const profile = await profileModel_1.default.findOne({ user: req.user.id });
+        console.log(profile);
+        profile.education.unshift(newEdu);
+        await profile.save();
+        res.status(200).json({
+            profile,
+        });
+    }
+    catch (err) {
+        res.status(500).json({ message: "server error" });
+    }
+};
+exports.profileEducation = profileEducation;
+const deleteEducation = async (req, res, next) => {
+    try {
+        const profile = await profileModel_1.default.findOne({ user: req.user.id });
+        const removeIndex = profile.experience
+            .map((item) => item.id)
+            .indexOf(req.params.educationId);
+        profile.education.splice(removeIndex, 1);
+        await profile.save();
+        res.status(204).json({
+            profile,
+        });
+    }
+    catch (err) {
+        res.status(500).json({ message: "server error" });
+    }
+};
+exports.deleteEducation = deleteEducation;
+const getGithubProfile = async (req, res, next) => {
+    try {
+        const options = {
+            uri: `https://api.github.com/users/${req.params.username}/repos?per_page=5&sort=created:asc&client_id=${process.env.GITHUB_CLIENT_ID}&client_secret=${process.env.GITHUB_CLIENT_SECRET}`,
+            method: "GET",
+            headers: { "user-agent": "node.js" },
+        };
+        request_1.default(options, (error, response, body) => {
+            if (error)
+                throw error;
+            if (response.statusCode !== 200)
+                return res.status(404).json({ message: "repositories not found" });
+            res.status(200).json(JSON.parse(body));
+        });
+    }
+    catch (err) {
+        res.status(500).json({ message: "server error" });
+    }
+};
+exports.getGithubProfile = getGithubProfile;

@@ -1,10 +1,11 @@
 import { RequestHandler } from "express";
 import { validationResult } from "express-validator";
+import request from "request";
 import Profile, {
-  IProfile,
-  ISocial,
-  IEducation,
   IExperience,
+  IProfile,
+  IEducation,
+  ISocial,
 } from "../models/profileModel";
 import User, { IUser } from "../models/userModel";
 
@@ -62,8 +63,6 @@ export const createUserProfile: RequestHandler = async (req, res, next) => {
 
   let profileFields: IProfile = {} as IProfile;
   profileFields.social = {} as ISocial;
-  profileFields.experience = {} as IExperience;
-  profileFields.education = {} as IEducation;
   console.log(profileFields);
 
   profileFields.user = req.user.id;
@@ -169,5 +168,118 @@ export const deleteProfile: RequestHandler = async (req, res, next) => {
     res.status(500).json({
       error: err.message,
     });
+  }
+};
+
+export const profileExperience: RequestHandler = async (req, res, next) => {
+  console.log("->");
+  console.log(req.user);
+  const errors = validationResult(req);
+  if (!errors.isEmpty())
+    return res.status(400).json({ errors: errors.array() });
+
+  const { title, company, location, from, to, current, description } = req.body;
+  const newExp: IExperience = {
+    title,
+    company,
+    location,
+    from,
+    to,
+    current,
+    description,
+  } as IExperience;
+  console.log(newExp);
+  try {
+    const profile = await Profile.findOne({ user: req.user.id });
+    console.log(profile);
+    profile.experience.unshift(newExp);
+    await profile.save();
+    res.status(200).json({
+      profile,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "server error" });
+  }
+};
+
+export const deleteExperience: RequestHandler = async (req, res, next) => {
+  try {
+    const profile = await Profile.findOne({ user: req.user.id });
+    const removeIndex = profile.experience
+      .map((item: IExperience) => item.id)
+      .indexOf(req.params.experienceId);
+
+    profile.experience.splice(removeIndex, 1);
+    await profile.save();
+    res.status(204).json({
+      profile,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "server error" });
+  }
+};
+
+export const profileEducation: RequestHandler = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty())
+    return res.status(400).json({ errors: errors.array() });
+
+  const { school, degree, fieldOfStudy, from, to, current, description } =
+    req.body;
+  const newEdu: IEducation = {
+    school,
+    degree,
+    fieldOfStudy,
+    from,
+    to,
+    current,
+    description,
+  } as IEducation;
+
+  try {
+    const profile = await Profile.findOne({ user: req.user.id });
+    console.log(profile);
+    profile.education.unshift(newEdu);
+    await profile.save();
+    res.status(200).json({
+      profile,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "server error" });
+  }
+};
+
+export const deleteEducation: RequestHandler = async (req, res, next) => {
+  try {
+    const profile = await Profile.findOne({ user: req.user.id });
+    const removeIndex = profile.experience
+      .map((item: IEducation) => item.id)
+      .indexOf(req.params.educationId);
+
+    profile.education.splice(removeIndex, 1);
+    await profile.save();
+    res.status(204).json({
+      profile,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "server error" });
+  }
+};
+
+export const getGithubProfile: RequestHandler = async (req, res, next) => {
+  try {
+    const options = {
+      uri: `https://api.github.com/users/${req.params.username}/repos?per_page=5&sort=created:asc&client_id=${process.env.GITHUB_CLIENT_ID}&client_secret=${process.env.GITHUB_CLIENT_SECRET}`,
+      method: "GET",
+      headers: { "user-agent": "node.js" },
+    };
+    request(options, (error, response, body) => {
+      if (error) throw error;
+      if (response.statusCode !== 200)
+        return res.status(404).json({ message: "repositories not found" });
+      res.status(200).json(JSON.parse(body));
+    });
+  } catch (err) {
+    res.status(500).json({ message: "server error" });
   }
 };

@@ -7,6 +7,11 @@ import {
   getAllProfiles,
   getProfileById,
   deleteProfile,
+  profileExperience,
+  deleteExperience,
+  profileEducation,
+  deleteEducation,
+  getGithubProfile,
 } from "../../controllers/profileController";
 import { check } from "express-validator";
 
@@ -32,5 +37,29 @@ router
 router.route("/me").get(authJWT, getUserProfile);
 
 router.route("/users/:userId").get(getProfileById);
+router
+  .route("/experience")
+  .put(
+    authJWT,
+    check("title", "title is required").not().isEmpty(),
+    check("company", "company is required").not().isEmpty(),
+    check("from", "start date is required").not().isEmpty(),
+    profileExperience
+  );
+
+router.route("/experience/:experienceId").delete(authJWT, deleteExperience);
+
+router
+  .route("/education")
+  .put(
+    authJWT,
+    check("school", "school is required").not().isEmpty(),
+    check("degree", "degree is required").not().isEmpty(),
+    check("from", "start date is required").not().isEmpty(),
+    profileEducation
+  );
+
+router.route("/education/:educationId").delete(authJWT, deleteEducation);
+router.route("/github/:username").get(getGithubProfile);
 
 export default router;

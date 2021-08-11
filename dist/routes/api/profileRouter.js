@@ -17,4 +17,13 @@ router
  */
 router.route("/me").get(auth_1.authJWT, profileController_1.getUserProfile);
 router.route("/users/:userId").get(profileController_1.getProfileById);
+router
+    .route("/experience")
+    .put(auth_1.authJWT, express_validator_1.check("title", "title is required").not().isEmpty(), express_validator_1.check("company", "company is required").not().isEmpty(), express_validator_1.check("from", "start date is required").not().isEmpty(), profileController_1.profileExperience);
+router.route("/experience/:experienceId").delete(auth_1.authJWT, profileController_1.deleteExperience);
+router
+    .route("/education")
+    .put(auth_1.authJWT, express_validator_1.check("school", "school is required").not().isEmpty(), express_validator_1.check("degree", "degree is required").not().isEmpty(), express_validator_1.check("from", "start date is required").not().isEmpty(), profileController_1.profileEducation);
+router.route("/education/:educationId").delete(auth_1.authJWT, profileController_1.deleteEducation);
+router.route("/github/:username").get(profileController_1.getGithubProfile);
 exports.default = router;
