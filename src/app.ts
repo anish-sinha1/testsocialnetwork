@@ -3,6 +3,7 @@ import express from "express";
 import connectDB from "./config/database";
 import userRouter from "./routes/api/userRouter";
 import authRouter from "./routes/api/authRouter";
+import profileRouter from "./routes/api/profileRouter";
 
 dotenv.config({ path: "src/config/config.env" });
 
@@ -13,6 +14,7 @@ connectDB();
 
 app.use("/api/users", userRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/profiles", profileRouter);
 
 const PORT = process.env.PORT || 8000;
 

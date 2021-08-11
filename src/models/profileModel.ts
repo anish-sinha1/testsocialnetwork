@@ -1,18 +1,45 @@
 import mongoose, { Schema, model, Document } from "mongoose";
 
+export interface IExperience extends Document {
+  title?: string;
+  company?: string;
+  location?: string;
+  from?: Date;
+  to?: string;
+  current?: boolean;
+  description?: string;
+}
+export interface IEducation extends Document {
+  school?: string;
+  degree?: string;
+  fieldOfStudy?: string;
+  from?: Date;
+  to?: Date;
+  current?: boolean;
+  description?: string;
+}
+export interface ISocial extends Document {
+  youtube: string;
+  facebook: string;
+  twitter: string;
+  instagram: string;
+  linkedin: string;
+  tiktok: string;
+}
+
 export interface IProfile extends Document {
   user: mongoose.Schema.Types.ObjectId;
   company?: string;
   website?: string;
-  location: string;
+  location?: string;
   status: string;
   skills: string[];
-  bio: string;
-  githubUsername: string;
-  experience: object[];
-  education: object[];
-  social: object;
-  date: Date;
+  bio?: string;
+  githubUsername?: string;
+  experience?: IExperience;
+  education?: IEducation;
+  social: ISocial;
+  date?: Date;
 }
 
 const profileSchema = new Schema({
@@ -73,6 +100,7 @@ const profileSchema = new Schema({
       description: {
         type: String,
       },
+      required: false,
     },
   ],
   education: [
@@ -103,6 +131,7 @@ const profileSchema = new Schema({
       description: {
         type: String,
       },
+      required: false,
     },
   ],
   social: {

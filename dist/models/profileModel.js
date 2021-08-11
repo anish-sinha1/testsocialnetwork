@@ -78,6 +78,7 @@ const profileSchema = new mongoose_1.Schema({
             description: {
                 type: String,
             },
+            required: false,
         },
     ],
     education: [
@@ -108,6 +109,7 @@ const profileSchema = new mongoose_1.Schema({
             description: {
                 type: String,
             },
+            required: false,
         },
     ],
     social: {
