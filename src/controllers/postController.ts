@@ -166,5 +166,9 @@ export const deleteComment: RequestHandler = async (req, res, next) => {
     post.comments.splice(removeIndex, 1);
     await post.save();
     return res.status(200).json({ comments: post.comments });
-  } catch (err) {}
+  } catch (err) {
+    res.status(500).json({
+      message: "server error",
+    });
+  }
 };
