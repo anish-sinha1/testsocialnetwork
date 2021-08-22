@@ -3,6 +3,8 @@ import { connect } from "react-redux";
 import axios from "axios";
 import { setAlert } from "../../actions/alert";
 import { Link } from "react-router-dom";
+import PropTypes from "prop-types";
+
 const Register: React.FC<{
   setAlert: (alert: string, alertType: string) => void;
 }> = (props) => {
@@ -94,6 +96,10 @@ const Register: React.FC<{
       </p>
     </Fragment>
   );
+};
+
+Register.propTypes = {
+  setAlert: PropTypes.func.isRequired,
 };
 
 export default connect(null, { setAlert })(Register);
