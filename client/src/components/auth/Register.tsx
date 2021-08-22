@@ -1,12 +1,15 @@
 import React, { Fragment, useState } from "react";
 import { connect } from "react-redux";
-import axios from "axios";
 import { setAlert } from "../../actions/alert";
-import { Link } from "react-router-dom";
+import { Link, Redirect } from "react-router-dom";
 import PropTypes from "prop-types";
+import { register } from "../../actions/auth";
 
 const Register: React.FC<{
   setAlert: (alert: string, alertType: string) => void;
+  register: any;
+
+  isAuthenticated: any;
 }> = (props) => {
   const [formData, setFormData] = useState({
     name: "",
@@ -23,24 +26,12 @@ const Register: React.FC<{
     if (password !== passwordConfirm) {
       props.setAlert("Passwords do not match", "danger");
     } else {
-      const newUser = {
-        name,
-        email,
-        password,
-        passwordConfirm,
-      };
-      try {
-        const config = {
-          headers: { "Content-Type": "application/json" },
-        };
-        const body = JSON.stringify(newUser);
-        const res = await axios.post("/api/users", body, config);
-        console.log(res.data);
-      } catch (e) {
-        console.error(e.response.data);
-      }
+      props.register({ name, email, password });
     }
   };
+  if (props.isAuthenticated) {
+    return <Redirect to="/dashboard" />;
+  }
   return (
     <Fragment>
       <h1 className="large text-primary">Sign up</h1>
@@ -55,7 +46,6 @@ const Register: React.FC<{
             name="name"
             value={name}
             onChange={fieldChangeHandler}
-            required
           />
         </div>
         <div className="form-group">
@@ -65,7 +55,6 @@ const Register: React.FC<{
             name="email"
             value={email}
             onChange={fieldChangeHandler}
-            required
           />
           <small>This site uses Gravatar for profile images</small>
         </div>
@@ -76,7 +65,6 @@ const Register: React.FC<{
             name="password"
             value={password}
             onChange={fieldChangeHandler}
-            required
           />
         </div>
         <div className="form-group">
@@ -86,7 +74,6 @@ const Register: React.FC<{
             name="passwordConfirm"
             value={passwordConfirm}
             onChange={fieldChangeHandler}
-            required
           />
         </div>
         <input type="submit" value="Register" className="btn btn-primary" />
@@ -100,6 +87,12 @@ const Register: React.FC<{
 
 Register.propTypes = {
   setAlert: PropTypes.func.isRequired,
+  register: PropTypes.func.isRequired,
+  isAuthenticated: PropTypes.bool,
 };
 
-export default connect(null, { setAlert })(Register);
+const mapStateToProps = (state: any) => ({
+  isAuthenticated: state.auth.isAuthenticated,
+});
+
+export default connect(mapStateToProps, { setAlert, register })(Register);
